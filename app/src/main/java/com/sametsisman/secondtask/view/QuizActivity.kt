@@ -1,5 +1,7 @@
 package com.sametsisman.secondtask.view
 
+import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -16,9 +18,12 @@ import java.util.ArrayList
 
 class QuizActivity : AppCompatActivity(){
     private lateinit var db : QuestionDatabase
-    private lateinit var questionDao : QuestionDao
-    private lateinit var questionSpacelist : ArrayList<Question>
-    private lateinit var questionFoodlist : ArrayList<Question>
+    private lateinit var questiondao : QuestionDao
+    private lateinit var questionSpacelist : List<Question>
+    private lateinit var questionFoodlist : List<Question>
+    private lateinit var questionList : List<Question>
+    private lateinit var editor : SharedPreferences.Editor
+    private var trueAnswer : Int = 0
     private var i : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,22 +31,29 @@ class QuizActivity : AppCompatActivity(){
         setContentView(R.layout.activity_quiz)
 
         db = Room.databaseBuilder(applicationContext,QuestionDatabase::class.java,"Questions").build()
-        questionDao = db.questionDao()
-        loadQuestion()
-
+        questiondao = db.questionDao()
         val sharedPreferences = getSharedPreferences("questionShared", MODE_PRIVATE)
+        editor = sharedPreferences.edit()
+        val isLoad = sharedPreferences.getInt("isLoad",0)
+
+        if (isLoad.equals(0)){
+            loadQuestion()
+            editor.putInt("isLoad",1)
+            editor.apply()
+            startActivity(intent)
+        }
+
         val theme = sharedPreferences.getString("theme","")
-        val name = sharedPreferences.getString("name","")
 
         if (theme.equals("space")){
             lifecycleScope.launch {
-                questionSpacelist = db.questionDao().getSpaceQuestions("space")
+                questionSpacelist = (questiondao.getSpaceQuestions("space"))
                 getQuestions(questionSpacelist)
             }
 
         }else if(theme.equals("food")){
             lifecycleScope.launch {
-                questionFoodlist = db.questionDao().getSpaceQuestions("food")
+                questionFoodlist = questiondao.getSpaceQuestions("food")
                 getQuestions(questionFoodlist)
             }
         }
@@ -49,11 +61,12 @@ class QuizActivity : AppCompatActivity(){
 
     }
 
-    private fun getQuestions(questionlist : ArrayList<Question>) {
+    private fun getQuestions(questionlist : List<Question>) {
         A_Button.background = resources.getDrawable(R.drawable.rounded_corner)
         B_Button.background = resources.getDrawable(R.drawable.rounded_corner)
         C_Button.background = resources.getDrawable(R.drawable.rounded_corner)
-
+        openClick()
+        questionList = questionlist
         val question = questionlist[i]
         if(question.numberOfChoice!!.equals(2)){
             C_Button.visibility = View.GONE
@@ -66,12 +79,14 @@ class QuizActivity : AppCompatActivity(){
         C_Button.text = question.C_Choice
 
         A_Button.setOnClickListener {
+            closeClick()
             if(question.correctAnswer.equals("A")){
                 lifecycleScope.launch {
                     A_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    trueAnswer++
+                    finishOrResume()
                 }
 
 
@@ -81,7 +96,7 @@ class QuizActivity : AppCompatActivity(){
                     B_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    finishOrResume()
                 }
             }else if (question.correctAnswer.equals("C")){
                 lifecycleScope.launch {
@@ -89,17 +104,19 @@ class QuizActivity : AppCompatActivity(){
                     C_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    finishOrResume()
                 }
             }
         }
         B_Button.setOnClickListener {
+            closeClick()
             if(question.correctAnswer.equals("B")){
                 lifecycleScope.launch {
                     B_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    trueAnswer++
+                    finishOrResume()
                 }
             }else if (question.correctAnswer.equals("A")){
                 lifecycleScope.launch {
@@ -107,7 +124,7 @@ class QuizActivity : AppCompatActivity(){
                     A_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    finishOrResume()
                 }
             }else if (question.correctAnswer.equals("C")){
                 lifecycleScope.launch {
@@ -115,17 +132,19 @@ class QuizActivity : AppCompatActivity(){
                     C_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    finishOrResume()
                 }
             }
         }
         C_Button.setOnClickListener {
+            closeClick()
             if(question.correctAnswer.equals("C")){
                 lifecycleScope.launch {
                     C_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    trueAnswer++
+                    finishOrResume()
                 }
             }else if (question.correctAnswer.equals("B")){
                 lifecycleScope.launch {
@@ -133,7 +152,7 @@ class QuizActivity : AppCompatActivity(){
                     B_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    finishOrResume()
                 }
             }else if (question.correctAnswer.equals("A")){
                 lifecycleScope.launch {
@@ -141,7 +160,7 @@ class QuizActivity : AppCompatActivity(){
                     A_Button.background = resources.getDrawable(R.drawable.rounded_corner_green)
                     delay(2000)
                     i++
-                    getQuestions(questionlist)
+                    finishOrResume()
                 }
             }
         }
@@ -180,5 +199,30 @@ class QuizActivity : AppCompatActivity(){
         lifecycleScope.launch {
             db.questionDao().insert(question)
         }
+    }
+
+    private fun finishOrResume(){
+        if(i<questionList.size){
+            getQuestions(questionList)
+        }else if(i>=questionList.size){
+            editor.putInt("questionListSize",questionList.size)
+            editor.putInt("trueAnswer",trueAnswer)
+            editor.apply()
+            val intent = Intent(this@QuizActivity,FinishActivity::class.java)
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+        }
+    }
+
+    private fun closeClick(){
+        A_Button.isClickable = false
+        B_Button.isClickable = false
+        C_Button.isClickable = false
+    }
+
+    private fun openClick(){
+        A_Button.isClickable = true
+        B_Button.isClickable = true
+        C_Button.isClickable = true
     }
 }

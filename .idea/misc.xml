@@ -6,6 +6,7 @@
         <entry key="app/src/main/res/drawable/rounded_corner.xml" value="0.2085" />
         <entry key="app/src/main/res/drawable/rounded_corner_green.xml" value="0.2085" />
         <entry key="app/src/main/res/drawable/rounded_corner_red.xml" value="0.2085" />
+        <entry key="app/src/main/res/layout/activity_finish.xml" value="0.19610507246376813" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.22395833333333334" />
         <entry key="app/src/main/res/layout/activity_quiz.xml" value="0.19610507246376813" />
         <entry key="app/src/main/res/layout/fragment_name.xml" value="0.19610507246376813" />

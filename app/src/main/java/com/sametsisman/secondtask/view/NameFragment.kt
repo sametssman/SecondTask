@@ -29,7 +29,7 @@ class NameFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        nextButton.setOnClickListener {
+        anaMenuButton.setOnClickListener {
             if (nameEditText.text.toString() != ""){
                 val name = nameEditText.text.toString()
                 val sharedPreferences = this.activity?.getSharedPreferences("questionShared", AppCompatActivity.MODE_PRIVATE)

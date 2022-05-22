@@ -10,6 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SecondTask">
         <activity
+            android:name=".view.FinishActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.QuizActivity"
             android:exported="false" />
         <activity
